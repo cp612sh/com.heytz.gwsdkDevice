@@ -101,11 +101,13 @@ public class gwsdkDevice extends CordovaPlugin {
            (d).login(uid, token);
 
            final XPGWifiDevice finalD = d;
-           d.setListener(new XPGWifiDeviceListener() {
-               @Override
-               public void didLogin(XPGWifiDevice device, int result) {
-                   cWrite(finalD, key, value);
-               }
+                     final String finalKey = key;
+                     final String finalValue  = value;
+                     d.setListener(new XPGWifiDeviceListener() {
+                         @Override
+                         public void didLogin(XPGWifiDevice device, int result) {
+                             cWrite(finalD, finalKey, finalValue);
+                         }
 
                @Override
                public void didDeviceOnline(XPGWifiDevice device, boolean isOnline) {
