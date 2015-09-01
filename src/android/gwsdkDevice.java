@@ -2,6 +2,7 @@ package com.heytz.gwsdkDevice;
 
 
 import android.content.Context;
+import android.util.Base64;
 import android.util.Log;
 import com.xtremeprog.xpgconnect.XPGWifiDevice;
 import com.xtremeprog.xpgconnect.XPGWifiDeviceListener;
@@ -15,6 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -91,16 +93,32 @@ public class gwsdkDevice extends CordovaPlugin {
      */
     private void cWrite(XPGWifiDevice xpgWifiDevice, String key, Object value) {
         try {
+            JSONObject arr=new JSONObject(value.toString());
             //创建JSONObject 对象，用于封装所有数据
-            final JSONObject jsonsend = new JSONObject();
+             JSONObject jsonsend = new JSONObject();
             //写入命令字段（所有产品一致）
             jsonsend.put("cmd", 1);
+            //jsonsend.put("aciton", 1);
             //创建JSONObject 对象，用于封装数据点
             JSONObject jsonparam = new JSONObject();
             //写入数据点字段
-            jsonparam.put(key, value);
+//            jsonparam.put(key, value);
+            Iterator it = arr.keys();
+            while (it.hasNext()) {
+                String jsonKey=(String) it.next();
+                String jsonValue=arr.getString(jsonKey);
+                jsonparam.put(jsonKey, getData(jsonValue));
+            }
+//            jsonparam.put("command", getData(arr.getString("command")));
+//            jsonparam.put("mac",  getData(arr.getString("mac")));
+//            jsonparam.put("control",  getData(arr.getString("control")));
+//            jsonparam.put("percent",  getData(arr.getString("percent")));
+//            jsonparam.put("angle",  getData(arr.getString("angle")));
             //写入产品字段（所有产品一致）
-            jsonsend.put("entity0", jsonparam);
+            jsonsend.put("entity0", jsonparam );
+            //{"entity0":"{\"command\":\"0009\",\"control\":\"02\",\"mac\":\"000000008d418d12\",\"percent\":\"00\",\"angle\":\"00\"}","cmd":1}
+            // 0x00 0x01 0x02 0x03 0x04 0x05 0x06 0x07 0x08 0x09 0x0a 0x0b 0x0c 0x0d 0x0e 0x0f
+            // 0x00 0x01 0x02 0x03 0x04 0x05 0x06 0x07 0x08 0x09 0x0a 0x0b 0x0c 0x0d 0x0e 0x0f
             //调用发送指令方法
             xpgWifiDevice.write(jsonsend.toString());
             airLinkCallbackContext.success("success");
@@ -109,7 +127,18 @@ public class gwsdkDevice extends CordovaPlugin {
             airLinkCallbackContext.error("error");
         }
     }
-
+    public static String getData(String str) {
+        return new String(Base64.encode(StringToBytes(str), Base64.NO_WRAP));
+    }
+    public static byte[] StringToBytes(String paramString) {
+        byte[] arrayOfByte = new byte[paramString.length() / 2];
+        for (int i = 0;; i += 2) {
+            if (i >= paramString.length())
+                return arrayOfByte;
+            String str = paramString.substring(i, i + 2);
+            arrayOfByte[(i / 2)] = ((byte) Integer.valueOf(str, 16).intValue());
+        }
+    }
     /**
      * 如果device没有登录那么登录，发送控制命令到cWrite 第二步
      *
