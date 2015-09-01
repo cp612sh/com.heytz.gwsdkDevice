@@ -156,6 +156,26 @@ public class gwsdkDevice extends CordovaPlugin {
                     @Override
                     public void didReceiveData(XPGWifiDevice device, java.util.concurrent.ConcurrentHashMap<String, Object> dataMap, int result) {
                         //回调
+                           //普通数据点类型，有布尔型、整形和枚举型数据，该种类型一般为可读写
+                                                    if (dataMap.get("data") != null){
+                                                        Log.i("info", (String)dataMap.get("data"));
+
+                                                    }
+                                                    //设备报警数据点类型，该种数据点只读，设备发生报警后该字段有内容，没有发生报警则没内容
+                                                    if (dataMap.get("alters") != null){
+                                                        Log.i("info", (String)dataMap.get("alters"));
+
+                                                    }
+                                                    //设备错误数据点类型，该种数据点只读，设备发生错误后该字段有内容，没有发生报警则没内容
+                                                    if (dataMap.get("faults") != null){
+                                                        Log.i("info", (String)dataMap.get("faults"));
+
+                                                    }
+                                                    //二进制数据点类型，适合开发者自行解析二进制数据
+                                                    if (dataMap.get("binary") != null){
+                                                        Log.i("info", "Binary data:");
+                                                        //收到后自行解析
+                                                    }
                     }
 
                     @Override
