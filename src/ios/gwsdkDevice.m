@@ -15,7 +15,7 @@
     BOOL isDiscoverLock;
     CDVPluginResult *pluginResult;
 }
-- (void)discover:(CDVInvokedUrlCommand *)command;
+- (void)discover;
 
 
 @property (strong,nonatomic) CDVInvokedUrlCommand * commandHolder;
@@ -101,7 +101,7 @@
  !*/
 - (void)XPGWifiDevice:(XPGWifiDevice *)device didLogin:(int)result
 {
-        if(result == 0&&device){
+        if(result == 0 && device){
             [self  cWrite:device];
             }
 }
