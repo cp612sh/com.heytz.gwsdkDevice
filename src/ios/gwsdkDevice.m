@@ -3,7 +3,7 @@
 #import <Cordova/CDV.h>
 #import <SystemConfiguration/CaptiveNetwork.h>
 #import <XPGWifiSDK/XPGWifiSDK.h>
-#import "Cordova/NSData+Base64.h"
+
 @interface gwsdkDevice : CDVPlugin<XPGWifiDeviceDelegate,XPGWifiSDKDelegate> {
     
     // Member variables go here.
@@ -145,7 +145,7 @@
             NSString *object=[_value objectForKey:key];
             
             NSData *data =[gwsdkDevice stringToHex:object];
-            NSString * encodeStr= [data base64EncodedString];
+            NSString * encodeStr= [XPGWifiBinary encode:data];
             NSLog(@"%@===%@",object,encodeStr);
             [data1 setObject:encodeStr forKey:key];
            
