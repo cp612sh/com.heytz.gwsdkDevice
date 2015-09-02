@@ -5,7 +5,14 @@
     <js-module name="gwsdkDevice" src="www/gwsdkDevice.js">
         <clobbers target="cordova.plugins.gwsdkDevice"/>
     </js-module>
-
+    <platform name="ios">
+        <config-file parent="/*" target="config.xml">
+            <feature name="gwsdkDevice">
+                <param name="ios-package" value="gwsdkDevice"/>
+            </feature>
+        </config-file>
+        <source-file src="src/ios/gwsdkDevice.m"/>
+    </platform>
     <platform name="android">
         <config-file parent="/*" target="res/xml/config.xml">
             <feature name="gwsdkDevice">
