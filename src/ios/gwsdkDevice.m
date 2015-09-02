@@ -33,18 +33,21 @@
 }
 
 -(void) deviceControl:(CDVInvokedUrlCommand *)command{
-    _appid=command.arguments[0];
+//    _appid=command.arguments[0];
     productKey=command.arguments[1];
     _uid=command.arguments[2];
     _token=command.arguments[3];
     _mac=command.arguments[4];
-    _value=command.arguments[5];
+    _value=command.arguments[5];//todo: back to value:5
     isDiscoverLock=true;
-    [self initCordova];//初始化设置appid
-    [self discover:command];
+     self.commandHolder = command;//???这个方法是做什么的？
+    [self initCordova:command];//初始化设置appid
+    [self discover];
 }
--(void)initCordova{
-    if(_appid){
+-(void)initCordova:(CDVInvokedUrlCommand *)command{
+    //如果_appid没有设置，或者appId改变那么设置startWithAppID，这个方法只执行一次
+    if(_appid==nil||_appid!=command.arguments[0]){
+        _appid=command.arguments[0];
         [XPGWifiSDK startWithAppID:_appid];
         [XPGWifiSDK sharedInstance].delegate = self;
     }
@@ -52,10 +55,7 @@
 /**
  根据 uid，token，appId 获取设备列表
  */
--(void) discover:(CDVInvokedUrlCommand *)command
-{
-    
-    self.commandHolder = command;//???这个方法是做什么的？
+-(void) discover{
     /**
      * @brief 获取绑定设备及本地设备列表
      * @param uid：登录成功后得到的uid
