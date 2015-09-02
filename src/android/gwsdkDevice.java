@@ -30,7 +30,7 @@ public class gwsdkDevice extends CordovaPlugin {
 
     private boolean controlState;//锁定用户的控制状态
     private List<XPGWifiDevice> xpgWifiDeviceList;
-    private String _appId, _productKey, _uid, _token, _mac, _key;
+    private String _appId, _productKey, _uid, _token, _mac;
     private Object _value;
     private final String TAG = "==========gwsdkDevice==============";
 
@@ -43,7 +43,6 @@ public class gwsdkDevice extends CordovaPlugin {
     }
 
     /**
-     *
      * @param action          The action to execute.
      * @param args            The exec() arguments.{ appid,productKey,uid,token,mac,key,value   }
      * @param callbackContext The callback context used when calling back into JavaScript.
@@ -63,8 +62,7 @@ public class gwsdkDevice extends CordovaPlugin {
             _uid = args.getString(2);
             _token = args.getString(3);
             _mac = args.getString(4);
-            _key = args.getString(5);
-            _value = args.getString(6);
+            _value = args.getString(5);
             this.getBoundDevice(_uid, _token, _productKey);
 
             return true;
@@ -74,7 +72,8 @@ public class gwsdkDevice extends CordovaPlugin {
     }
 
     /**
-     *搜索设备 第一步
+     * 搜索设备 第一步
+     *
      * @param uid
      * @param token
      * @param specialPoductKeys
@@ -87,15 +86,15 @@ public class gwsdkDevice extends CordovaPlugin {
 
     /**
      * 发送控制命令的方法  第三步
+     *
      * @param xpgWifiDevice
-     * @param key
      * @param value
      */
-    private void cWrite(XPGWifiDevice xpgWifiDevice, String key, Object value) {
+    private void cWrite(XPGWifiDevice xpgWifiDevice, Object value) {
         try {
-            JSONObject arr=new JSONObject(value.toString());
+            JSONObject arr = new JSONObject(value.toString());
             //创建JSONObject 对象，用于封装所有数据
-             JSONObject jsonsend = new JSONObject();
+            JSONObject jsonsend = new JSONObject();
             //写入命令字段（所有产品一致）
             jsonsend.put("cmd", 1);
             //jsonsend.put("aciton", 1);
@@ -105,8 +104,8 @@ public class gwsdkDevice extends CordovaPlugin {
 //            jsonparam.put(key, value);
             Iterator it = arr.keys();
             while (it.hasNext()) {
-                String jsonKey=(String) it.next();
-                String jsonValue=arr.getString(jsonKey);
+                String jsonKey = (String) it.next();
+                String jsonValue = arr.getString(jsonKey);
                 jsonparam.put(jsonKey, getData(jsonValue));
             }
 //            jsonparam.put("command", getData(arr.getString("command")));
@@ -115,7 +114,7 @@ public class gwsdkDevice extends CordovaPlugin {
 //            jsonparam.put("percent",  getData(arr.getString("percent")));
 //            jsonparam.put("angle",  getData(arr.getString("angle")));
             //写入产品字段（所有产品一致）
-            jsonsend.put("entity0", jsonparam );
+            jsonsend.put("entity0", jsonparam);
             //{"entity0":"{\"command\":\"0009\",\"control\":\"02\",\"mac\":\"000000008d418d12\",\"percent\":\"00\",\"angle\":\"00\"}","cmd":1}
             // 0x00 0x01 0x02 0x03 0x04 0x05 0x06 0x07 0x08 0x09 0x0a 0x0b 0x0c 0x0d 0x0e 0x0f
             // 0x00 0x01 0x02 0x03 0x04 0x05 0x06 0x07 0x08 0x09 0x0a 0x0b 0x0c 0x0d 0x0e 0x0f
@@ -127,28 +126,30 @@ public class gwsdkDevice extends CordovaPlugin {
             airLinkCallbackContext.error("error");
         }
     }
+
     public static String getData(String str) {
         return new String(Base64.encode(StringToBytes(str), Base64.NO_WRAP));
     }
+
     public static byte[] StringToBytes(String paramString) {
         byte[] arrayOfByte = new byte[paramString.length() / 2];
-        for (int i = 0;; i += 2) {
+        for (int i = 0; ; i += 2) {
             if (i >= paramString.length())
                 return arrayOfByte;
             String str = paramString.substring(i, i + 2);
             arrayOfByte[(i / 2)] = ((byte) Integer.valueOf(str, 16).intValue());
         }
     }
+
     /**
      * 如果device没有登录那么登录，发送控制命令到cWrite 第二步
      *
      * @param uid
      * @param token
      * @param mac
-     * @param key
      * @param value
      */
-    private void deviceLogin(String uid, String token, String mac, String key, Object value) {
+    private void deviceLogin(String uid, String token, String mac, Object value) {
 
         XPGWifiDevice d = null;
         for (int i = 0; i < xpgWifiDeviceList.size(); i++) {
@@ -170,7 +171,7 @@ public class gwsdkDevice extends CordovaPlugin {
                 d.setListener(new XPGWifiDeviceListener() {
                     @Override
                     public void didLogin(XPGWifiDevice device, int result) {
-                        cWrite(device, _key, _value);
+                        cWrite(device, _value);
                     }
 
                     @Override
@@ -185,26 +186,26 @@ public class gwsdkDevice extends CordovaPlugin {
                     @Override
                     public void didReceiveData(XPGWifiDevice device, java.util.concurrent.ConcurrentHashMap<String, Object> dataMap, int result) {
                         //回调
-                           //普通数据点类型，有布尔型、整形和枚举型数据，该种类型一般为可读写
-                                                    if (dataMap.get("data") != null){
-                                                        Log.i("info", (String)dataMap.get("data"));
+                        //普通数据点类型，有布尔型、整形和枚举型数据，该种类型一般为可读写
+                        if (dataMap.get("data") != null) {
+                            Log.i("info", (String) dataMap.get("data"));
 
-                                                    }
-                                                    //设备报警数据点类型，该种数据点只读，设备发生报警后该字段有内容，没有发生报警则没内容
-                                                    if (dataMap.get("alters") != null){
-                                                        Log.i("info", (String)dataMap.get("alters"));
+                        }
+                        //设备报警数据点类型，该种数据点只读，设备发生报警后该字段有内容，没有发生报警则没内容
+                        if (dataMap.get("alters") != null) {
+                            Log.i("info", (String) dataMap.get("alters"));
 
-                                                    }
-                                                    //设备错误数据点类型，该种数据点只读，设备发生错误后该字段有内容，没有发生报警则没内容
-                                                    if (dataMap.get("faults") != null){
-                                                        Log.i("info", (String)dataMap.get("faults"));
+                        }
+                        //设备错误数据点类型，该种数据点只读，设备发生错误后该字段有内容，没有发生报警则没内容
+                        if (dataMap.get("faults") != null) {
+                            Log.i("info", (String) dataMap.get("faults"));
 
-                                                    }
-                                                    //二进制数据点类型，适合开发者自行解析二进制数据
-                                                    if (dataMap.get("binary") != null){
-                                                        Log.i("info", "Binary data:");
-                                                        //收到后自行解析
-                                                    }
+                        }
+                        //二进制数据点类型，适合开发者自行解析二进制数据
+                        if (dataMap.get("binary") != null) {
+                            Log.i("info", "Binary data:");
+                            //收到后自行解析
+                        }
                     }
 
                     @Override
@@ -212,7 +213,7 @@ public class gwsdkDevice extends CordovaPlugin {
                     }
                 });
             } else {
-                cWrite(d, key, value);
+                cWrite(d, _value);
             }
 
         }
@@ -230,7 +231,7 @@ public class gwsdkDevice extends CordovaPlugin {
             public void didDiscovered(int error, List<XPGWifiDevice> deviceList) {
                 if (error == 0 && deviceList.size() > 0) {
                     xpgWifiDeviceList = deviceList;
-                    deviceLogin(_uid, _token, _mac, _key, _value);
+                    deviceLogin(_uid, _token, _mac, _value);
                     Log.d(TAG, "deviceLoing()");
                 }
             }
