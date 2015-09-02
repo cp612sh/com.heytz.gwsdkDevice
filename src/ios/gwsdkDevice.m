@@ -15,9 +15,6 @@
     BOOL isDiscoverLock;
     CDVPluginResult *pluginResult;
 }
-
-- (void)getCurrentSSID:(CDVInvokedUrlCommand*)command;
-- (void)setDeviceWifi:(CDVInvokedUrlCommand *)command;
 - (void)discover:(CDVInvokedUrlCommand *)command;
 
 
@@ -47,7 +44,7 @@
     [self discover:command];
 }
 -(void)initCordova{
-    if(_appid==nil){
+    if(_appid){
         [XPGWifiSDK startWithAppID:_appid];
         [XPGWifiSDK sharedInstance].delegate = self;
     }
@@ -57,10 +54,6 @@
  */
 -(void) discover:(CDVInvokedUrlCommand *)command
 {
-    // there is better way to do this.
-    NSString * uid = command.arguments[2];
-    NSString * token = command.arguments[3];
-    NSString * appId = command.arguments[0];
     
     self.commandHolder = command;//???这个方法是做什么的？
     /**
@@ -70,7 +63,7 @@
      * @param specialProductKey：指定待筛选设备的产品标识（获取或搜索到未指定设备产品标识的设备将其过滤，指定Nil则不过滤）
      * @see 对应的回调接口：[XPGWifiSDK XPGWifiSDK:didDiscovered:result:]
      */
-    [[XPGWifiSDK sharedInstance] getBoundDevicesWithUid:uid token:token specialProductKeys:nil];
+    [[XPGWifiSDK sharedInstance] getBoundDevicesWithUid:_uid token:_token specialProductKeys:productKey,nil];
 }
 
 /**
@@ -130,8 +123,6 @@
         [self.commandDelegate sendPluginResult:pluginResult callbackId:commandHolder.callbackId];
         
     }
-    
-
 }
 /**
  write 的回调，
