@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="com.heytz.gwsdkDevice" version="0.2.4" xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>gwsdkwrapper</name>
+    <js-module name="gwsdkDevice" src="www/gwsdkDevice.js">
+        <clobbers target="cordova.plugins.gwsdkDevice"/>
+    </js-module>
+    <platform name="ios">
+        <config-file parent="/*" target="config.xml">
+            <feature name="gwsdkDevice">
+                <param name="ios-package" value="gwsdkDevice"/>
+            </feature>
+        </config-file>
+        <source-file src="src/ios/gwsdkDevice.m"/>
+    </platform>
+    <platform name="android">
+        <config-file parent="/*" target="res/xml/config.xml">
+            <feature name="gwsdkDevice">
+                <param name="android-package" value="com.heytz.gwsdkDevice.gwsdkDevice"/>
+            </feature>
+        </config-file>
+        <config-file parent="/*" target="AndroidManifest.xml"></config-file>
+        <source-file src="src/android/gwsdkDevice.java" target-dir="src/com/heytz/gwsdkDevice/gwsdkDevice/"/>
+    </platform>
+</plugin>
