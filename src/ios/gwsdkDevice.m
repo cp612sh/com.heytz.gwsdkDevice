@@ -3,7 +3,7 @@
 #import <Cordova/CDV.h>
 #import <SystemConfiguration/CaptiveNetwork.h>
 #import <XPGWifiSDK/XPGWifiSDK.h>
-
+#import "Cordova/NSData+Base64.h"
 @interface gwsdkDevice : CDVPlugin<XPGWifiDeviceDelegate,XPGWifiSDKDelegate> {
     
     // Member variables go here.
@@ -73,28 +73,52 @@
 - (void)XPGWifiSDK:(XPGWifiSDK *)wifiSDK didDiscovered:(NSArray *)deviceList result:(int)result
 {
     if(isDiscoverLock){//如果锁定状态为true 那么就是控制命令已经发送成功
-    if(deviceList.count>0&&result==0){
-        _deviceList=deviceList;
-        [self deviceLogin:deviceList];
-    }
-    }
-}
-/**
- 筛选要控制的device，判断是否登录。
- 如果这个device没有登录，则执行login方法登录device。
- **/
-- (void)deviceLogin:(NSArray *)deviceList{
-    for(XPGWifiDevice *device in deviceList){
-        if (device.macAddress==_mac) {
-            isDiscoverLock=false;//设置锁定状态
-            if (device.isConnected) {
-                [self cWrite:device];
-            }else{
-                [device login:_uid token:_token];
+        if(deviceList.count>0 && result==0){
+        
+        //_deviceList=deviceList;
+            for (int i=0; i<[deviceList count]; i++) {
+               // NSLog(@"%@",[deviceList[i] macAddress]);
             }
+            
+            for (int i=0; i<[deviceList count]; i++) {
+                NSLog(@"=======%@",[deviceList[i] macAddress]);
+                XPGWifiDevice *device = deviceList[i];
+                //[[deviceList[i] macAddress]]
+                
+                
+                if ([device.macAddress isEqualToString: [_mac uppercaseString]]) {
+                    isDiscoverLock=false;//设置锁定状态
+                    if (device.isConnected) {
+                        [self cWrite:deviceList[i]];
+                    }else{
+                        device.delegate = self;
+                        [device login:_uid token:_token];
+                        
+                    }
+                }
+            }
+
+//        [self deviceLogin:deviceList];
         }
     }
 }
+///**
+// 筛选要控制的device，判断是否登录。
+// 如果这个device没有登录，则执行login方法登录device。
+// **/
+//- (void)deviceLogin:(NSArray *)deviceList{
+//    for(XPGWifiDevice *device in deviceList){
+//            
+//        if (device.macAddress==_mac) {
+//            isDiscoverLock=false;//设置锁定状态
+//            if (device.isConnected) {
+//                [self cWrite:device];
+//            }else{
+//                [device login:_uid token:_token];
+//            }
+//        }
+//    }
+//}
 /*!
  login device 的回调
  判断这个device是否登录成功，如果成功则发送控制命令
@@ -110,8 +134,25 @@
  */
 -(void) cWrite:(XPGWifiDevice *)device{
     NSDictionary *data=nil;
+    NSMutableDictionary * data1 = [NSMutableDictionary dictionaryWithDictionary: _value];
     @try {
-        data=@{@"cmd":@1,@"entity0":_value};
+        
+        
+        
+        NSEnumerator *enumerator1= [_value keyEnumerator];
+        id key=[enumerator1 nextObject];
+        while (key) {
+            NSString *object=[_value objectForKey:key];
+            
+            NSData *data =[gwsdkDevice stringToHex:object];
+            NSString * encodeStr= [data base64EncodedString];
+            NSLog(@"%@===%@",object,encodeStr);
+            [data1 setObject:encodeStr forKey:key];
+           
+            key=[enumerator1 nextObject];
+        }
+        
+        data=@{@"cmd":@1,@"entity0":data1};
         NSLog(@"Write data: %@", data);
         [device write:data];
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"success"];
@@ -124,6 +165,39 @@
         
     }
 }
+
++(NSData *)stringToHex: (NSString *) str{
+    //-------------------
+    
+    // NSString --> hex
+    const char *buf = [str UTF8String];
+    NSMutableData *data = [NSMutableData data];
+    if (buf)
+    {
+        uint32_t len = strlen(buf);
+        
+        char singleNumberString[3] = {'\0', '\0', '\0'};
+        uint32_t singleNumber = 0;
+        for(uint32_t i = 0 ; i < len; i+=2)
+        {
+            if ( ((i+1) < len) && isxdigit(buf[i]) && (isxdigit(buf[i+1])) )
+            {
+                singleNumberString[0] = buf[i];
+                singleNumberString[1] = buf[i + 1];
+                sscanf(singleNumberString, "%x", &singleNumber);
+                uint8_t tmp = (uint8_t)(singleNumber & 0x000000FF);
+                [data appendBytes:(void *)(&tmp)length:1];
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+    //-------------------
+    return data;
+}
+
 /**
  write 的回调，
  这里判断发送消息是否成功
